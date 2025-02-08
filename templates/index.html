@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catering Order Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        async function placeOrder() {
+            const customer_name = document.getElementById("customer_name").value;
+            const event_details = document.getElementById("event_details").value;
+            const food_items = document.getElementById("food_items").value;
+            const quantity = document.getElementById("quantity").value;
+
+            const response = await fetch("/place_order", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ customer_name, event_details, food_items, quantity })
+            });
+
+            const result = await response.json();
+            alert(result.message);
+        }
+
+        async function viewOrders() {
+            const response = await fetch("/view_orders");
+            const orders = await response.json();
+            let output = "<h2>Orders</h2>";
+
+            orders.forEach(order => {
+                output += `<p><strong>Order ID:</strong> ${order.order_id}<br>
+                           <strong>Customer:</strong> ${order.customer_name}<br>
+                           <strong>Event:</strong> ${order.event_details}<br>
+                           <strong>Items:</strong> ${order.food_items} (x${order.quantity})<br>
+                           <strong>Status:</strong> ${order.status}</p>`;
+            });
+
+            document.getElementById("orders").innerHTML = output;
+        }
+
+        async function generateInvoice() {
+            const order_id = document.getElementById("invoice_id").value;
+            const response = await fetch(`/generate_invoice?order_id=${order_id}`);
+            const result = await response.json();
+            document.getElementById("invoice").innerText = result.invoice || "Order not found";
+        }
+    </script>
+</head>
+<body>
+    <h1>Catering Order Management</h1>
+
+    <h2>Place Order</h2>
+    <input type="text" id="customer_name" placeholder="Customer Name"><br>
+    <input type="text" id="event_details" placeholder="Event Details"><br>
+    <input type="text" id="food_items" placeholder="Food Items"><br>
+    <input type="number" id="quantity" placeholder="Quantity"><br>
+    <button onclick="placeOrder()">Place Order</button>
+
+    <h2>View Orders</h2>
+    <button onclick="viewOrders()">Show Orders</button>
+    <div id="orders"></div>
+
+    <h2>Generate Invoice</h2>
+    <input type="number" id="invoice_id" placeholder="Order ID">
+    <button onclick="generateInvoice()">Get Invoice</button>
+    <pre id="invoice"></pre>
+</body>
+</html>
